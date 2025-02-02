@@ -1,4 +1,4 @@
-from rest_framework import viewsets, filters
+from rest_framework import viewsets, filters, pagination
 from rest_framework.exceptions import ValidationError
 from rest_framework.permissions import IsAuthenticated, BasePermission, SAFE_METHODS
 
@@ -10,8 +10,14 @@ from .serializers import CategorySerializer, ProductSerializer, OrderSerializer,
 class IsAdminOrReadOnly(BasePermission):
     def has_permission(self, request, view):
         if request.method in SAFE_METHODS:
-            return request.user.is_authenticated
+            return True
         return request.user.is_staff
+
+
+class ProductPagination(pagination.PageNumberPagination):
+    page_size = 8
+    page_size_query_param = 'page_size'
+    max_page_size = 200
 
 
 class CategoryViewset(viewsets.ModelViewSet):
@@ -31,8 +37,9 @@ class ProductForSpecificCategory(filters.BaseFilterBackend):
 class ProductViewset(viewsets.ModelViewSet):
     queryset = Product.objects.all()
     serializer_class = ProductSerializer
-    permission_classes = [IsAdminOrReadOnly]
     filter_backends = [ProductForSpecificCategory]
+    pagination_class = ProductPagination
+    permission_classes = [IsAdminOrReadOnly]
 
 
 class OrderViewset(viewsets.ModelViewSet):
@@ -62,7 +69,7 @@ class OrderViewset(viewsets.ModelViewSet):
 class OrderItemViewset(viewsets.ModelViewSet):
     queryset = OrderItem.objects.all()
     serializer_class = OrderItemSerializer
-    permission_classes = [IsAdminOrReadOnly]
+    permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
         user = self.request.user

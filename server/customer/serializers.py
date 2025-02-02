@@ -28,7 +28,7 @@ class PurchaseSerializer(serializers.ModelSerializer):
 
 class WishListSerializer(serializers.ModelSerializer):
     customer = serializers.StringRelatedField(many=False)
-    product = serializers.StringRelatedField(many=False)
+    # product = serializers.StringRelatedField(many=False)
     class Meta:
         model = WishList
         fields = '__all__'
