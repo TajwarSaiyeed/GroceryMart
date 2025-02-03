@@ -28,7 +28,7 @@ class PurchaseAdmin(admin.ModelAdmin):
 
 
 class WishListAdmin(admin.ModelAdmin):
-    list_display = ['id', 'customer', 'product', 'quantity', 'timestamp']
+    list_display = ['id', 'customer', 'product', 'timestamp']
 
     def customer(self, obj):
         return obj.customer.user.username

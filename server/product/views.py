@@ -1,8 +1,9 @@
+from decimal import Decimal
 from rest_framework import viewsets, filters, pagination
 from rest_framework.exceptions import ValidationError
-from rest_framework.permissions import IsAuthenticated, BasePermission, SAFE_METHODS
+from rest_framework.permissions import IsAuthenticated, BasePermission, SAFE_METHODS, IsAdminUser as IsAdmin
 
-from customer.models import Customer
+from customer.models import Customer, Purchase
 from .models import Category, Product, Order, OrderItem
 from .serializers import CategorySerializer, ProductSerializer, OrderSerializer, OrderItemSerializer
 
@@ -41,6 +42,8 @@ class ProductViewset(viewsets.ModelViewSet):
     pagination_class = ProductPagination
     permission_classes = [IsAdminOrReadOnly]
 
+    def get_serializer_context(self):
+        return {'request': self.request}
 
 class OrderViewset(viewsets.ModelViewSet):
     queryset = Order.objects.all()
@@ -57,27 +60,43 @@ class OrderViewset(viewsets.ModelViewSet):
         except Customer.DoesNotExist:
             return Order.objects.none()
 
-    def perform_create(self, serializer):
-        user = self.request.user
-        try:
-            customer = Customer.objects.get(user=user)
-        except Customer.DoesNotExist:
-            raise ValidationError("Customer does not exist!!")
-        serializer.save(customer=customer)
+    def create(self, validated_data):
+        order_items_data = validated_data.pop('order_items')
+        request = self.context.get('request')
 
+        try:
+            customer = Customer.objects.get(user=request.user)
+        except Customer.DoesNotExist:
+            raise ValidationError("Customer does not exist.")
+
+        total_price = Decimal(0)
+        for item in order_items_data:
+            product = item['product']
+            quantity = item['quantity']
+            if product.stock < quantity:
+                raise ValidationError(f"Only {product.stock} of {product.name} available.")
+            total_price += Decimal(product.price) * quantity
+
+        if total_price > customer.balance:
+            raise ValidationError("Insufficient balance.")
+
+        customer.balance -= total_price
+        customer.save()
+
+        # Create the order.
+        order = Order.objects.create(customer=customer, **validated_data)
+
+        for item in order_items_data:
+            product = item['product']
+            quantity = item['quantity']
+            OrderItem.objects.create(order=order, product=product, quantity=quantity)
+            product.quantity -= quantity
+            product.save()
+            Purchase.objects.create(customer=customer, product=product, quantity=quantity)
+
+        return order
 
 class OrderItemViewset(viewsets.ModelViewSet):
     queryset = OrderItem.objects.all()
     serializer_class = OrderItemSerializer
-    permission_classes = [IsAuthenticated]
-
-    def get_queryset(self):
-        user = self.request.user
-        if user.is_staff:
-            return OrderItem.objects.all()
-        try:
-            customer = Customer.objects.get(user=user)
-            order_ids = customer.orders.values_list('id', flat=True)
-            return OrderItem.objects.filter(order__in=order_ids)
-        except Customer.DoesNotExist:
-            return OrderItem.objects.none()
+    permission_classes = [IsAdmin]

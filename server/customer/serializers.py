@@ -1,6 +1,7 @@
+from product.models import Product
 from rest_framework import serializers
-from .models import Customer, Deposit, Purchase, WishList
 from django.contrib.auth.models import User
+from .models import Customer, Deposit, Purchase, WishList
 
 class CustomerSerializer(serializers.ModelSerializer):
     user = serializers.StringRelatedField(many=False)
@@ -27,19 +28,22 @@ class PurchaseSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 class WishListSerializer(serializers.ModelSerializer):
-    customer = serializers.StringRelatedField(many=False)
-    # product = serializers.StringRelatedField(many=False)
+    product = serializers.PrimaryKeyRelatedField(
+        queryset=Product.objects.all(), write_only=True
+    )
+    product_name = serializers.CharField(source='product.name', read_only=True)
+    product_image = serializers.ImageField(source='product.image', read_only=True)
     class Meta:
         model = WishList
-        fields = '__all__'
-
+        fields = ['id', 'product', 'product_name', 'product_image', 'timestamp']
 
 class RegistrationSerializer(serializers.ModelSerializer):
     confirm_password = serializers.CharField(required=True)
-    mobile_no = serializers.CharField(required=True,write_only=True)
+    mobile_no = serializers.CharField(required=True, write_only=True)
+
     class Meta:
         model = User
-        fields = ['username', 'first_name', 'last_name', 'email', 'password','confirm_password', 'mobile_no']
+        fields = ['username', 'first_name', 'last_name', 'email', 'password', 'confirm_password', 'mobile_no']
 
     def save(self):
         username = self.validated_data['username']

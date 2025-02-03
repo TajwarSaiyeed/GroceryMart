@@ -38,7 +38,6 @@ class Deposit(models.Model):
 class WishList(models.Model):
     customer = models.ForeignKey(Customer, on_delete=models.CASCADE, related_name='wishlist_customer')
     product = models.ForeignKey('product.Product', on_delete=models.CASCADE, related_name='wishlist_product')
-    quantity = models.IntegerField()
     timestamp = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
