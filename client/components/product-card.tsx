@@ -1,7 +1,15 @@
-import Image from "next/image";
-import { Button } from "@/components/ui/button";
+"use client";
 
-interface ProductCardProps {
+import Image from "next/image";
+import Link from "next/link";
+import { Button } from "@/components/ui/button";
+import { HeartIcon } from "lucide-react";
+import { toast } from "sonner";
+import { addToWishList } from "@/actions/toggle-wishlist";
+import { useSession } from "next-auth/react";
+
+interface Props {
+  id: number;
   name: string;
   description: string;
   price: number;
@@ -10,19 +18,53 @@ interface ProductCardProps {
   quantity: number;
 }
 
+interface ProductCardProps extends Props {
+  wishlist_users: string[];
+}
+
 export function ProductCard({
+  id,
   name,
   description,
   price,
   image,
   category,
   quantity,
+  wishlist_users = [],
 }: ProductCardProps) {
+  const { data: session } = useSession();
   const categoryLabel =
     typeof category === "number" ? `Category ${category}` : category;
 
+  async function handleAddToWishlist() {
+    try {
+      toast.loading("Working...");
+      const response = await addToWishList(id);
+      toast.success(response.message);
+    } catch {
+      toast.error("Failed to add product to wishlist");
+    } finally {
+      toast.dismiss();
+    }
+  }
+
+  const isWishlist =
+    !session?.user || wishlist_users.length === 0
+      ? false
+      : wishlist_users.includes(session.user?.name ?? "");
+
   return (
-    <div className="bg-white shadow-md rounded-lg overflow-hidden">
+    <div className="bg-white shadow-md rounded-lg overflow-hidden relative">
+      {!isWishlist && (
+        <Button
+          variant={"outline"}
+          size={"icon"}
+          className="absolute top-2 right-2 border-none"
+          onClick={handleAddToWishlist}
+        >
+          <HeartIcon size={24} />
+        </Button>
+      )}
       <Image
         src={image || "/placeholder.svg"}
         alt={name}
@@ -39,12 +81,14 @@ export function ProductCard({
         </p>
         <div className="flex justify-between items-center mb-2">
           <span className="font-bold text-green-600">${price.toFixed(2)}</span>
-          <span className="text-sm text-gray-500">{quantity}</span>
+          <span className="text-sm text-gray-500">In stock: {quantity}</span>
         </div>
         <div className="text-sm text-gray-500 mb-4">
           Category: {categoryLabel}
         </div>
-        <Button className="w-full">Add to Cart</Button>
+        <Link href={`/products/${id}`} passHref>
+          <Button className="w-full">View Details</Button>
+        </Link>
       </div>
     </div>
   );

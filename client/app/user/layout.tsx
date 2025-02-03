@@ -1,7 +1,6 @@
 "use client";
 
 import type React from "react";
-import { DashboardSidebar } from "./components/dashboard-sidebar";
 import {
   SidebarProvider,
   SidebarTrigger,
@@ -9,6 +8,7 @@ import {
 } from "@/components/ui/sidebar";
 import { usePathname } from "next/navigation";
 import { SessionProvider } from "next-auth/react";
+import { DashboardSidebar } from "./components/dashboard-sidebar";
 
 export default function DashboardLayout({
   children,
@@ -33,6 +33,8 @@ export default function DashboardLayout({
         return "Deposit";
       case "/user/deposit/deposit-history":
         return "Deposit History";
+      case "/user/wishlist":
+        return "Wishlist";
       default:
         return "Dashboard";
     }

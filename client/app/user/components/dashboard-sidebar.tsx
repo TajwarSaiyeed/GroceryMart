@@ -10,6 +10,7 @@ import {
   LogOut,
   Banknote,
   Home,
+  HeartIcon,
 } from "lucide-react";
 
 import { cn } from "@/lib/utils";
@@ -78,6 +79,20 @@ export function DashboardSidebar() {
               <Link href="/user/orders">
                 <ShoppingBag className="mr-2 h-4 w-4" />
                 Orders
+              </Link>
+            </SidebarMenuButton>
+          </SidebarMenuItem>
+          <SidebarMenuItem>
+            <SidebarMenuButton
+              asChild
+              className={cn(
+                "w-full justify-start",
+                pathname === "/user/wishlist" && "bg-green-100 text-green-700"
+              )}
+            >
+              <Link href="/user/wishlist">
+                <HeartIcon className="mr-2 h-4 w-4" />
+                Wishlist
               </Link>
             </SidebarMenuButton>
           </SidebarMenuItem>

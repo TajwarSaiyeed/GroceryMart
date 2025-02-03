@@ -11,15 +11,15 @@ import {
 } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
-import { getCategories } from "@/actions/get-categories";
 import { getProducts } from "@/actions/get-products";
+import { getCategories } from "@/actions/get-categories";
 
 interface CategoryProps {
   id: number;
   name: string;
 }
 
-interface ProductProps {
+export interface ProductProps {
   id: number;
   name: string;
   description: string;
@@ -29,8 +29,12 @@ interface ProductProps {
   quantity: number;
 }
 
+interface Props extends ProductProps {
+  wishlist_users: string[];
+}
+
 interface ProductsData {
-  results: ProductProps[];
+  results: Props[];
   count: number;
   next: string | null;
   previous: string | null;
@@ -44,7 +48,7 @@ const ProductsPage = () => {
     "All"
   );
   const [productsData, setProductsData] = useState<ProductsData>({
-    results: [],
+    results: [] as (ProductProps & { wishlist_users: string[] })[],
     count: 0,
     next: null,
     previous: null,
