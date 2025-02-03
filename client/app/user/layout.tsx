@@ -28,7 +28,7 @@ export default function DashboardLayout({
       case "/user/payment":
         return "Payment";
       case "/user/settings":
-        return "Settings";
+        return "Account Settings";
       case "/user/deposit":
         return "Deposit";
       case "/user/deposit/deposit-history":

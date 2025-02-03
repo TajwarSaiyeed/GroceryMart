@@ -15,11 +15,10 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { logout } from "@/actions/logout";
 import { signOut, useSession } from "next-auth/react";
+import { Skeleton } from "@/components/ui/skeleton";
 
 const Navbar = () => {
-  const data = useSession();
-
-  const { data: session } = data;
+  const { data: session, status } = useSession();
 
   const handleLogout = async () => {
     try {
@@ -47,7 +46,9 @@ const Navbar = () => {
             </Link>
 
             <div className="flex items-center gap-4">
-              {session?.user ? (
+              {status === "loading" ? (
+                <NavbarSkeleton />
+              ) : session?.user ? (
                 <DropdownMenu>
                   <DropdownMenuTrigger>
                     <Avatar>
@@ -91,5 +92,12 @@ const Navbar = () => {
     </div>
   );
 };
+
+const NavbarSkeleton = () => (
+  <div className="flex items-center gap-2">
+    <Skeleton className="h-9 w-[70px]" />
+    <Skeleton className="h-9 w-[80px]" />
+  </div>
+);
 
 export default Navbar;

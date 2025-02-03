@@ -9,6 +9,7 @@ import {
   Settings,
   LogOut,
   Banknote,
+  Home,
 } from "lucide-react";
 
 import { cn } from "@/lib/utils";
@@ -110,6 +111,22 @@ export function DashboardSidebar() {
         </SidebarMenu>
       </SidebarContent>
       <SidebarFooter>
+        <SidebarMenu>
+          <SidebarMenuItem>
+            <SidebarMenuButton
+              asChild
+              className={cn(
+                "w-full justify-start",
+                pathname === "/" && "bg-green-100 text-green-700"
+              )}
+            >
+              <Link href="/">
+                <Home className="mr-2 h-4 w-4" />
+                Home
+              </Link>
+            </SidebarMenuButton>
+          </SidebarMenuItem>
+        </SidebarMenu>
         <SidebarMenu>
           <SidebarMenuItem>
             <SidebarMenuButton

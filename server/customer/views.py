@@ -161,3 +161,22 @@ class UserLogoutApiView(APIView):
         request.user.auth_token.delete()
         logout(request)
         return JsonResponse({'message': 'Successfully logged out'}, status=status.HTTP_200_OK)
+
+
+class GetUserAndCustomerView(APIView):
+    authentication_classes = [TokenAuthentication]
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        user = User.objects.get(username=request.user)
+        customer = Customer.objects.get(user=request.user)
+        response_data = {
+            'username': user.username,
+            'email': user.email,
+            'first_name': user.first_name,
+            'last_name': user.last_name,
+            'mobile_no': customer.mobile_no,
+            'balance': customer.balance,
+        }
+
+        return Response(response_data, status=status.HTTP_200_OK)

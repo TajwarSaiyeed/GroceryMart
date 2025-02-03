@@ -10,6 +10,7 @@ import {
   SelectItem,
 } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
+import { Skeleton } from "@/components/ui/skeleton";
 import { getCategories } from "@/actions/get-categories";
 import { getProducts } from "@/actions/get-products";
 
@@ -18,7 +19,7 @@ interface CategoryProps {
   name: string;
 }
 
-interface Product {
+interface ProductProps {
   id: number;
   name: string;
   description: string;
@@ -29,7 +30,7 @@ interface Product {
 }
 
 interface ProductsData {
-  results: Product[];
+  results: ProductProps[];
   count: number;
   next: string | null;
   previous: string | null;
@@ -49,6 +50,8 @@ const ProductsPage = () => {
     previous: null,
   });
   const [currentPage, setCurrentPage] = useState(1);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isCategoryLoading, setIsCategoryLoading] = useState(true);
 
   useEffect(() => {
     const fetchCategories = async () => {
@@ -57,6 +60,8 @@ const ProductsPage = () => {
         setCategories([{ id: 0, name: "All" }, ...response]);
       } catch (error) {
         console.error("Error fetching categories:", error);
+      } finally {
+        setIsCategoryLoading(false);
       }
     };
 
@@ -65,6 +70,7 @@ const ProductsPage = () => {
 
   useEffect(() => {
     const fetchProducts = async () => {
+      setIsLoading(true);
       try {
         const categoryId =
           selectedCategory === "All" ? undefined : selectedCategory;
@@ -72,79 +78,47 @@ const ProductsPage = () => {
         setProductsData(response);
       } catch (error) {
         console.error("Error fetching products:", error);
+      } finally {
+        setIsLoading(false);
       }
     };
 
     fetchProducts();
   }, [selectedCategory, currentPage]);
 
-  const pageCount = Math.ceil(productsData.count / backendPageSize);
+  const handlePageChange = (page: number) => {
+    setCurrentPage(page);
+  };
 
   const handleCategoryChange = (value: string) => {
-    const newCategory = value === "All" ? "All" : parseInt(value, 10);
-    setSelectedCategory(newCategory);
+    setSelectedCategory(value === "All" ? "All" : Number.parseInt(value));
     setCurrentPage(1);
   };
 
   const renderPagination = () => {
-    const pagesToShow = 3;
-    const pageButtons = [];
-    const startPage = Math.max(1, currentPage - Math.floor(pagesToShow / 2));
-    const endPage = Math.min(pageCount, startPage + pagesToShow - 1);
-
-    for (let i = startPage; i <= endPage; i++) {
-      pageButtons.push(
-        <Button
-          key={i}
-          variant={currentPage === i ? "default" : "outline"}
-          onClick={() => setCurrentPage(i)}
-          className="px-3 py-1"
-        >
-          {i}
-        </Button>
-      );
-    }
+    const totalPages = Math.ceil(productsData.count / backendPageSize);
+    if (totalPages <= 1) return null;
 
     return (
-      <div className="flex items-center space-x-2">
+      <div className="flex space-x-2">
         <Button
-          onClick={() => setCurrentPage((old) => Math.max(old - 1, 1))}
+          onClick={() => handlePageChange(currentPage - 1)}
           disabled={currentPage === 1}
         >
-          Prev
+          Previous
         </Button>
-
-        {startPage > 1 && (
-          <>
-            <Button
-              onClick={() => setCurrentPage(1)}
-              className="px-3 py-1"
-              variant={currentPage === 1 ? "default" : "outline"}
-            >
-              1
-            </Button>
-            {startPage > 2 && <span className="px-2">...</span>}
-          </>
-        )}
-
-        {pageButtons}
-
-        {endPage < pageCount && (
-          <>
-            {endPage < pageCount - 1 && <span className="px-2">...</span>}
-            <Button
-              onClick={() => setCurrentPage(pageCount)}
-              className="px-3 py-1"
-              variant={currentPage === pageCount ? "default" : "outline"}
-            >
-              {pageCount}
-            </Button>
-          </>
-        )}
-
+        {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+          <Button
+            key={page}
+            onClick={() => handlePageChange(page)}
+            className={currentPage === page ? "bg-blue-500 text-white" : ""}
+          >
+            {page}
+          </Button>
+        ))}
         <Button
-          onClick={() => setCurrentPage((old) => Math.min(old + 1, pageCount))}
-          disabled={currentPage === pageCount}
+          onClick={() => handlePageChange(currentPage + 1)}
+          disabled={currentPage === totalPages}
         >
           Next
         </Button>
@@ -166,44 +140,61 @@ const ProductsPage = () => {
 
       <div className="flex flex-row items-center justify-between mb-10">
         <div>
-          <Select
-            value={
-              selectedCategory === "All" ? "All" : String(selectedCategory)
-            }
-            onValueChange={handleCategoryChange}
-          >
-            <SelectTrigger className="w-[180px]">
-              <SelectValue placeholder="Select a category" />
-            </SelectTrigger>
-            <SelectContent>
-              {categories.map((category) => (
-                <SelectItem
-                  key={category.id}
-                  value={category.id === 0 ? "All" : String(category.id)}
-                >
-                  {category.name}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+          {isCategoryLoading ? (
+            <Skeleton className="w-[180px] h-10" />
+          ) : (
+            <Select
+              value={
+                selectedCategory === "All" ? "All" : String(selectedCategory)
+              }
+              onValueChange={handleCategoryChange}
+            >
+              <SelectTrigger className="w-[180px]">
+                <SelectValue placeholder="Select a category" />
+              </SelectTrigger>
+              <SelectContent>
+                {categories.map((category) => (
+                  <SelectItem
+                    key={category.id}
+                    value={category.id === 0 ? "All" : String(category.id)}
+                  >
+                    {category.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          )}
         </div>
         <div className="flex justify-center">{renderPagination()}</div>
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 mb-8">
-        {productsData.results.map((product) => (
-          <ProductCard
-            key={product.id}
-            {...product}
-            category={
-              categories.find((cat) => cat.id === product.category)?.name ||
-              product.category
-            }
-          />
-        ))}
+        {isLoading
+          ? Array.from({ length: backendPageSize }).map((_, index) => (
+              <ProductCardSkeleton key={index} />
+            ))
+          : productsData.results.map((product) => (
+              <ProductCard
+                key={product.id}
+                {...product}
+                category={
+                  categories.find((cat) => cat.id === product.category)?.name ||
+                  product.category
+                }
+              />
+            ))}
       </div>
     </div>
   );
 };
+
+const ProductCardSkeleton = () => (
+  <div className="border rounded-lg p-4 space-y-4">
+    <Skeleton className="h-48 w-full" />
+    <Skeleton className="h-4 w-2/3" />
+    <Skeleton className="h-4 w-1/2" />
+    <Skeleton className="h-4 w-1/4" />
+  </div>
+);
 
 export default ProductsPage;

@@ -73,3 +73,9 @@ class UserLoginSerializer(serializers.Serializer):
     class Meta:
         model = User
         fields = ['username', 'password']
+
+class GetUserAndCustomerSerializer(serializers.ModelSerializer):
+    user = serializers.StringRelatedField(many=False)
+    class Meta:
+        model = Customer
+        fields = '__all__'
