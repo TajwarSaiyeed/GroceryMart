@@ -81,11 +81,12 @@ export default function CartPage() {
             duration: 5000,
           }
         );
+      } else {
+        throw new Error(response.message);
       }
-    } catch (error) {
-      console.error("Error placing order:", error);
-      toast.error("An error occurred while placing the order", {
-        description: "Please try again later.",
+    } catch (error: unknown) {
+      toast.error("Placing order failed", {
+        description: (error as Error)?.message || "Please try again later",
         duration: 5000,
       });
     }

@@ -1,17 +1,17 @@
-from django.http import JsonResponse
-from rest_framework.views import APIView
-from django.contrib.auth.models import User
-from rest_framework import viewsets, status
-from rest_framework.response import Response
-from django.utils.encoding import force_bytes
-from rest_framework.authtoken.models import Token
-from django.core.mail import EmailMultiAlternatives
-from django.template.loader import render_to_string
-from rest_framework.permissions import IsAuthenticated
 from django.contrib.auth import authenticate, login, logout
-from rest_framework.authentication import TokenAuthentication
+from django.contrib.auth.models import User
 from django.contrib.auth.tokens import default_token_generator
+from django.core.mail import EmailMultiAlternatives
+from django.http import JsonResponse
+from django.template.loader import render_to_string
+from django.utils.encoding import force_bytes
 from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
+from rest_framework import viewsets, status
+from rest_framework.authentication import TokenAuthentication
+from rest_framework.authtoken.models import Token
+from rest_framework.permissions import IsAuthenticated
+from rest_framework.response import Response
+from rest_framework.views import APIView
 
 from .models import Customer, Deposit, Purchase, WishList
 from .serializers import CustomerSerializer, RegistrationSerializer, UserLoginSerializer, DepositSerializer, \
@@ -21,6 +21,10 @@ from .serializers import CustomerSerializer, RegistrationSerializer, UserLoginSe
 class CustomerViewset(viewsets.ModelViewSet):
     queryset = Customer.objects.all()
     serializer_class = CustomerSerializer
+    permission_classes = [IsAuthenticated]
+
+    def filter_queryset(self, queryset):
+        return queryset.filter(user=self.request.user)
 
 
 class DepositViewset(viewsets.ModelViewSet):
@@ -61,6 +65,10 @@ class DepositViewset(viewsets.ModelViewSet):
 class PurchaseViewset(viewsets.ModelViewSet):
     queryset = Purchase.objects.all()
     serializer_class = PurchaseSerializer
+    permission_classes = [IsAuthenticated]
+
+    def filter_queryset(self, queryset):
+        return queryset.filter(customer__user=self.request.user)
 
 
 class WishListViewset(viewsets.ModelViewSet):

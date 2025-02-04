@@ -1,7 +1,9 @@
 from decimal import Decimal
-from rest_framework import viewsets, filters, pagination
-from rest_framework.exceptions import ValidationError
+
+from django.http import JsonResponse
+from rest_framework import viewsets, filters, pagination, status
 from rest_framework.permissions import IsAuthenticated, BasePermission, SAFE_METHODS, IsAdminUser as IsAdmin
+from rest_framework.response import Response
 
 from customer.models import Customer, Purchase
 from .models import Category, Product, Order, OrderItem
@@ -45,6 +47,7 @@ class ProductViewset(viewsets.ModelViewSet):
     def get_serializer_context(self):
         return {'request': self.request}
 
+
 class OrderViewset(viewsets.ModelViewSet):
     queryset = Order.objects.all()
     serializer_class = OrderSerializer
@@ -60,41 +63,44 @@ class OrderViewset(viewsets.ModelViewSet):
         except Customer.DoesNotExist:
             return Order.objects.none()
 
-    def create(self, validated_data):
-        order_items_data = validated_data.pop('order_items')
-        request = self.context.get('request')
-
-        try:
+    def create(self, request, *args, **kwargs):
+        serializer = OrderSerializer(data=request.data)
+        if serializer.is_valid():
             customer = Customer.objects.get(user=request.user)
-        except Customer.DoesNotExist:
-            raise ValidationError("Customer does not exist.")
+            order_items = serializer.validated_data['order_items']
+            for item in order_items:
+                product = item['product']
+                quantity = item['quantity']
+                if product.quantity < quantity:
+                    return JsonResponse(
+                        {'error': True, 'message': f"Only {product.quantity} items left in stock"},
+                        status=status.HTTP_400_BAD_REQUEST
+                    )
 
-        total_price = Decimal(0)
-        for item in order_items_data:
-            product = item['product']
-            quantity = item['quantity']
-            if product.stock < quantity:
-                raise ValidationError(f"Only {product.stock} of {product.name} available.")
-            total_price += Decimal(product.price) * quantity
 
-        if total_price > customer.balance:
-            raise ValidationError("Insufficient balance.")
+            total_price = Decimal(sum(item['product'].price * item['quantity'] for item in order_items))
 
-        customer.balance -= total_price
-        customer.save()
+            if total_price > customer.balance:
+                return JsonResponse(
+                    {'error': True, 'message': "Insufficient balance"},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
 
-        # Create the order.
-        order = Order.objects.create(customer=customer, **validated_data)
+            customer.balance -= total_price
+            customer.save()
 
-        for item in order_items_data:
-            product = item['product']
-            quantity = item['quantity']
-            OrderItem.objects.create(order=order, product=product, quantity=quantity)
-            product.quantity -= quantity
-            product.save()
-            Purchase.objects.create(customer=customer, product=product, quantity=quantity)
+            order = Order.objects.create(customer=customer)
+            for item in order_items:
+                product = item['product']
+                quantity = item['quantity']
+                OrderItem.objects.create(order=order, product=product, quantity=quantity)
+                Purchase.objects.create(customer=customer, product=product, quantity=quantity)
+                product.quantity -= quantity
+                product.save()
+            order.save()
+            return JsonResponse(serializer.data, status=status.HTTP_201_CREATED)
+        return JsonResponse(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-        return order
 
 class OrderItemViewset(viewsets.ModelViewSet):
     queryset = OrderItem.objects.all()

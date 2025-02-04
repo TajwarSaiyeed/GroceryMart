@@ -2,7 +2,7 @@
 
 import { auth } from "@/auth";
 import { API_URL } from "@/lib/utils";
-import axios from "axios";
+import axios, { AxiosError } from "axios";
 
 export interface CartState {
   items: {
@@ -40,11 +40,12 @@ export const placeOrder = async (cart: CartState) => {
       message: "Order placed successfully",
       data: response.data,
     };
-  } catch (error) {
-    console.error("Error placing order:", error);
+  } catch (error: unknown) {
     return {
       success: false,
-      message: "An error occurred while placing the order",
+      message:
+        (error as AxiosError<{ message: string }>)?.response?.data?.message ||
+        "An error occurred while placing the order",
     };
   }
 };

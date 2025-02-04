@@ -5,7 +5,7 @@ import axios from "axios";
 
 export const getProfileInfo = async () => {
   const session = await auth();
-  
+
   if (!session) {
     throw new Error("Not authenticated");
   }
@@ -15,8 +15,6 @@ export const getProfileInfo = async () => {
       Authorization: `Token ${session?.user?.token}`,
     },
   });
-
-  console.log(response.data);
 
   return response.data;
 };

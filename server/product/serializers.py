@@ -6,17 +6,10 @@ from .models import Product, Category, Order, OrderItem
 
 class ProductSerializer(serializers.ModelSerializer):
     category = serializers.StringRelatedField(many=False)
-    is_in_wishlist = serializers.SerializerMethodField()
     wishlist_users = serializers.SerializerMethodField()
     class Meta:
         model = Product
         fields = '__all__'
-
-    def get_is_in_wishlist(self, obj):
-        user = self.context['request'].user
-        if user.is_authenticated:
-            return WishList.objects.filter(product=obj, customer__user=user).exists()
-        return False
 
     def get_wishlist_users(self, obj):
         wishlist_users = WishList.objects.filter(product=obj).values_list('customer__user__username', flat=True)

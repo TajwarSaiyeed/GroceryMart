@@ -50,6 +50,10 @@ export function ProductDetails({ product }: ProductDetailsProps) {
               max={product.quantity}
               value={quantity}
               onChange={(e) => {
+                if (e.target.value === "") {
+                  setQuantity(1);
+                  return;
+                }
                 const newQuantity = Number.parseInt(e.target.value);
                 setQuantity(
                   Math.min(Math.max(1, newQuantity), product.quantity)
