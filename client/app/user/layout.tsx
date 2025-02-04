@@ -22,7 +22,9 @@ export default function DashboardLayout({
       case "/user":
         return "Dashboard";
       case "/user/orders":
-        return "Orders";
+        return "My Orders";
+      case "/user/purchase":
+        return "Purchase History";
       case "/user/shopping-lists":
         return "Shopping Lists";
       case "/user/payment":

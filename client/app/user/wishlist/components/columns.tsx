@@ -3,10 +3,12 @@
 import { deleteFromWishlist } from "@/actions/toggle-wishlist";
 import { ColumnDef } from "@tanstack/react-table";
 import Image from "next/image";
+import Link from "next/link";
 import { toast } from "sonner";
 
 export type WishlistData = {
   id: number;
+  product_id: string;
   product_name: string;
   product_image: string;
   timestamp: string;
@@ -20,6 +22,13 @@ export const wishlistColumns: ColumnDef<WishlistData>[] = [
   {
     accessorKey: "product_name",
     header: "Product",
+    cell: (data) => {
+      return (
+        <Link href={`/products/${data.row.original.product_id}`}>
+          {data.row.original.product_name}
+        </Link>
+      );
+    },
   },
   {
     accessorKey: "product_image",

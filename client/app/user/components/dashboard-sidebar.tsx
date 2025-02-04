@@ -11,6 +11,7 @@ import {
   Banknote,
   Home,
   HeartIcon,
+  CreditCard,
 } from "lucide-react";
 
 import { cn } from "@/lib/utils";
@@ -79,6 +80,20 @@ export function DashboardSidebar() {
               <Link href="/user/orders">
                 <ShoppingBag className="mr-2 h-4 w-4" />
                 Orders
+              </Link>
+            </SidebarMenuButton>
+          </SidebarMenuItem>
+          <SidebarMenuItem>
+            <SidebarMenuButton
+              asChild
+              className={cn(
+                "w-full justify-start",
+                pathname === "/user/purchase" && "bg-green-100 text-green-700"
+              )}
+            >
+              <Link href="/user/purchase">
+                <CreditCard className="mr-2 h-4 w-4" />
+                Purchase History
               </Link>
             </SidebarMenuButton>
           </SidebarMenuItem>

@@ -1,9 +1,17 @@
-import React from 'react'
+import { DataTable } from "@/components/data-table";
+import { getOrders } from "@/actions/get-orders";
+import { orderColumns } from "./components/columns";
 
-const Orders = () => {
+export const dynamic = "force-dynamic";
+
+const OrdersPage = async () => {
+  const ordersData = await getOrders();
+
   return (
-    <div>Orders</div>
-  )
-}
+    <div>
+      <DataTable data={ordersData} columns={orderColumns} />
+    </div>
+  );
+};
 
-export default Orders
+export default OrdersPage;
