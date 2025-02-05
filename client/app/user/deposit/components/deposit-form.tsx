@@ -19,12 +19,14 @@ import {
 import { Input } from "@/components/ui/input";
 import { createDeposit } from "../../actions/action";
 import { toast } from "sonner";
+import { useSession } from "next-auth/react";
 
 const formSchema = z.object({
   amount: z.number().positive("Amount must be a positive number"),
 });
 
 export default function DepositForm() {
+  const { data: session, update } = useSession();
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
 
@@ -42,7 +44,18 @@ export default function DepositForm() {
 
       if (response.success) {
         toast.success("Deposit successful! Check your email for confirmation.");
-        router.push("/user/deposit/deposit-history");
+        if (session && session.user) {
+          await update({
+            ...session,
+            user: {
+              ...session.user,
+              balance: session.user.balance + values.amount,
+            },
+          });
+          router.push("/user/deposit/deposit-history");
+        } else {
+          toast.error("Session is not available. Please log in again.");
+        }
       } else {
         toast.error(response.message || "Something went wrong");
       }

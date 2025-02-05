@@ -18,6 +18,7 @@ import {
 import Link from "next/link";
 import { ShoppingCart } from "lucide-react";
 import { authenticateUser } from "./actions/action";
+import { toast } from "sonner";
 
 const formSchema = z.object({
   username: z.string().min(2, {
@@ -33,7 +34,6 @@ type FormValues = z.infer<typeof formSchema>;
 const SignInPage = () => {
   const router = useRouter();
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [errorMessage, setErrorMessage] = useState("");
 
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
@@ -45,21 +45,20 @@ const SignInPage = () => {
 
   async function onSubmit(values: FormValues) {
     setIsSubmitting(true);
-    setErrorMessage("");
-
+    toast.loading("Signing in...");
     try {
       const result = await authenticateUser(values.username, values.password);
-
       if (result?.error) {
-        setErrorMessage(result.error);
+        toast.error(result.error);
       } else {
+        toast.success("Signed in successfully.");
         router.push("/");
       }
-    } catch (error) {
-      console.error("Error in sign in", error);
-      setErrorMessage("Something went wrong. Please try again.");
+    } catch {
+      toast.error("Something went wrong. Please try again.");
     } finally {
       setIsSubmitting(false);
+      toast.dismiss();
     }
   }
 
@@ -71,8 +70,6 @@ const SignInPage = () => {
           <span className="text-2xl font-bold text-green-600">GroceryMart</span>
         </div>
         <h3 className="text-2xl font-bold text-center mb-6">Sign In</h3>
-
-        {errorMessage && <p className="text-red-600 mb-4">{errorMessage}</p>}
 
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
@@ -114,17 +111,8 @@ const SignInPage = () => {
             </Button>
           </form>
         </Form>
-
-        <div className="mt-6 text-center">
-          <Link
-            href="/forgot-password"
-            className="text-sm text-green-600 hover:underline"
-          >
-            Forgot password?
-          </Link>
-        </div>
         <div className="mt-6 text-grey-dark text-center">
-          Don’t have an account?{" "}
+          Don&apos;t have an account?{" "}
           <Link href="/register" className="text-green-600 hover:underline">
             Register
           </Link>

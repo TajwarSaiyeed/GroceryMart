@@ -47,7 +47,6 @@ export async function createDeposit(data: DepositInput) {
   }
 }
 
-
 export async function getDepositHistory() {
   try {
     const session = await auth();
@@ -81,6 +80,55 @@ export async function getDepositHistory() {
     return {
       success: false,
       message: "An error occurred while fetching deposit history",
+    };
+  }
+}
+
+export async function updatePassword(oldPassword: string, newPassword: string, confirmPassword: string) {
+  try {
+    const session = await auth();
+
+    if (!session) {
+      return { success: false, message: "Not authenticated" };
+    }
+
+    const response = await axios.post(
+      `${API_URL}/customer/update-password/`,
+      {
+        old_password: oldPassword,
+        new_password: newPassword,
+        confirm_password: confirmPassword,
+      },
+      {
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Token ${session.user?.token}`,
+        },
+      }
+    );
+
+    console.log("response", response);
+    
+
+    if (response.status === 200) {
+      return { success: true, message: "Password updated successfully" };
+    } else {
+      return {
+        success: false,
+        message: response.data.error || "Failed to update password",
+      };
+    }
+  } catch (error) {
+    console.error("Error updating password:", error);
+    if (axios.isAxiosError(error) && error.response) {
+      return {
+        success: false,
+        message: error.response.data.error || "Failed to update password",
+      };
+    }
+    return {
+      success: false,
+      message: "An error occurred while updating the password",
     };
   }
 }

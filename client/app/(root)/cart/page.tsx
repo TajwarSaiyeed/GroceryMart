@@ -1,14 +1,15 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { useCart } from "@/hooks/use-cart";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Skeleton } from "@/components/ui/skeleton";
-import Image from "next/image";
 import Link from "next/link";
-import { placeOrder } from "./actions/action";
+import Image from "next/image";
 import { toast } from "sonner";
+import { useCart } from "@/hooks/use-cart";
+import { useState, useEffect } from "react";
+import { useSession } from "next-auth/react";
+import { Input } from "@/components/ui/input";
+import { placeOrder } from "./actions/action";
+import { Skeleton } from "@/components/ui/skeleton";
+import { Button, buttonVariants } from "@/components/ui/button";
 
 const CartSkeleton = () => (
   <div className="max-w-4xl mx-auto px-4 py-8">
@@ -37,6 +38,7 @@ const CartSkeleton = () => (
 
 export default function CartPage() {
   const { items, removeFromCart, getTotalPrice } = useCart();
+  const { update, data: session, status } = useSession();
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
@@ -62,6 +64,7 @@ export default function CartPage() {
   }
 
   const handleOrder = async () => {
+    toast.loading("Placing order...");
     try {
       const cartState = {
         items: items.map((item) => ({
@@ -73,7 +76,21 @@ export default function CartPage() {
       const response = await placeOrder(cartState);
 
       if (response.success) {
+        const newBalance =
+          (session?.user?.balance ?? 0) > getTotalPrice()
+            ? (session?.user?.balance ?? 0) - getTotalPrice()
+            : 0;
+
+        await update({
+          ...session,
+          user: {
+            ...session?.user,
+            balance: newBalance,
+          },
+        });
+
         useCart.getState().clearCart();
+
         toast.success(
           "Order placed successfully. Check your email for confirmation.",
           {
@@ -89,6 +106,8 @@ export default function CartPage() {
         description: (error as Error)?.message || "Please try again later",
         duration: 5000,
       });
+    } finally {
+      toast.dismiss();
     }
   };
 
@@ -145,9 +164,20 @@ export default function CartPage() {
         <p className="text-xl font-semibold">
           Total: ${getTotalPrice().toFixed(2)}
         </p>
-        <Button className="w-40" onClick={handleOrder}>
-          Order Now
-        </Button>
+        {status === "unauthenticated" ? (
+          <Link
+            className={buttonVariants({
+              variant: "destructive",
+            })}
+            href={"/sign-in"}
+          >
+            Sign in to order
+          </Link>
+        ) : (
+          <Button className="w-40" onClick={handleOrder}>
+            Order Now
+          </Button>
+        )}
       </div>
     </div>
   );

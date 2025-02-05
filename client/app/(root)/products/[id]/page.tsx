@@ -1,20 +1,27 @@
 "use client";
 
-import { ProductProps } from "../page";
+import type { ProductProps } from "../page";
 import { useState, useEffect } from "react";
 import { useParams } from "next/navigation";
 import { useSession } from "next-auth/react";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Separator } from "@/components/ui/separator";
 import { ReviewForm } from "./components/review-form";
 import { ReviewList } from "./components/review-list";
 import { ProductDetails } from "./components/product-details";
 import { getProductDetails } from "./actions/get-product-details";
+import { EditReviewForm } from "./components/exit-review-form";
 
-export default function ProductPage() {
+const ProductPage = () => {
   const { status } = useSession();
   const { id } = useParams();
   const [product, setProduct] = useState<ProductProps | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [editingReview, setEditingReview] = useState<{
+    id: number;
+    rating: number;
+    description: string;
+  } | null>(null);
 
   useEffect(() => {
     const fetchProduct = async () => {
@@ -51,14 +58,31 @@ export default function ProductPage() {
       <ProductDetails product={product} />
       <div className="mt-16">
         <h2 className="text-2xl font-bold mb-4">Customer Reviews</h2>
-
-        <ReviewList productId={product.id} />
-
-        {status === "authenticated" && <ReviewForm productId={product.id} />}
+        {status === "authenticated" && !editingReview && (
+          <>
+            <Separator className="my-5" />
+            <ReviewForm productId={product.id} />
+          </>
+        )}
+        {editingReview && (
+          <EditReviewForm
+            review={editingReview}
+            onCancel={() => setEditingReview(null)}
+            onSuccess={() => {
+              setEditingReview(null);
+              window.location.reload();
+            }}
+          />
+        )}
+        <Separator className="my-5" />
+        <ReviewList
+          productId={product.id}
+          onEditReview={(review) => setEditingReview(review)}
+        />
       </div>
     </div>
   );
-}
+};
 
 const ProductSkeleton = () => (
   <div className="max-w-6xl mx-auto px-4 py-8">
@@ -74,3 +98,5 @@ const ProductSkeleton = () => (
     </div>
   </div>
 );
+
+export default ProductPage;

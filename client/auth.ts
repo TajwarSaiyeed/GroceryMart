@@ -6,6 +6,8 @@ import { API_URL } from "@/lib/utils";
 declare module "next-auth" {
   interface User {
     token: string;
+    full_name: string;
+    balance: number;
   }
 }
 
@@ -28,32 +30,43 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
             }
           );
 
-          console.log("Data from login:", data);
-
           if (!data.token) {
-            throw new Error("Invalid credentials");
+            return null;
           }
+
           return {
             id: data.user_id,
             token: data.token,
             email: data.email,
             name: data.username,
+            full_name: data.full_name,
+            balance: data.balance,
           };
-        } catch (error) {
-          console.log("Error on login:", error);
+        } catch {
           return null;
         }
       },
     }),
   ],
   callbacks: {
-    async jwt({ token, user }) {
+    async jwt({ token, user, trigger, session }) {
       if (user) {
         token.id = user.id;
         token.email = user.email;
         token.name = user.name;
         token.token = user.token;
+        token.full_name = user.full_name;
+        token.balance = user.balance;
       }
+
+      if (trigger === "update") {
+        return {
+          ...token,
+          ...session?.user,
+          balance: session?.user?.balance,
+        };
+      }
+
       return token;
     },
 
@@ -62,6 +75,8 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       session.user.email = token.email as string;
       session.user.name = token.name as string;
       session.user.token = token.token as string;
+      session.user.full_name = token.full_name as string;
+      session.user.balance = token.balance as number;
       return session;
     },
   },

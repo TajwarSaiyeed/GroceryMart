@@ -20,6 +20,7 @@ import { logout } from "@/actions/logout";
 const Navbar = () => {
   const { data: session, status } = useSession();
   const { getTotalItems } = useCart();
+
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
@@ -51,6 +52,11 @@ const Navbar = () => {
             </Link>
           </div>
           <div className="flex items-center gap-4">
+            {status === "authenticated" && mounted && (
+              <span className="text-sm font-medium">
+                Balance: ${session?.user?.balance}
+              </span>
+            )}
             <Link href="/cart" className="relative">
               <ShoppingCart className="h-6 w-6" />
               {mounted && getTotalItems() > 0 && (
@@ -73,7 +79,7 @@ const Navbar = () => {
                 </DropdownMenuTrigger>
                 <DropdownMenuContent>
                   <DropdownMenuLabel>
-                    {session.user?.name || "User"}
+                    {session.user?.full_name || "User"}
                   </DropdownMenuLabel>
                   <DropdownMenuSeparator />
                   <DropdownMenuItem>

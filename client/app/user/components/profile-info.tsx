@@ -74,7 +74,6 @@ export function ProfileInformation() {
             <h3 className="text-sm font-medium text-muted-foreground">Phone</h3>
             <p className="text-lg">{profileInfo.mobile_no}</p>
           </div>
-
           <div>
             <h3 className="text-sm font-medium text-muted-foreground">
               Balance
@@ -96,7 +95,7 @@ function ProfileInfoSkeleton() {
       </CardHeader>
       <CardContent>
         <div className="space-y-4">
-          {[...Array(4)].map((_, i) => (
+          {[...Array(5)].map((_, i) => (
             <div key={i}>
               <Skeleton className="h-4 w-[100px] mb-2" />
               <Skeleton className="h-6 w-[200px]" />

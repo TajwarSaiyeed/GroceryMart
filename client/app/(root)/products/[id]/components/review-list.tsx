@@ -3,22 +3,30 @@
 import { useState, useEffect } from "react";
 import { getReviews } from "../actions/get-product-details";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Button } from "@/components/ui/button";
+import { useSession } from "next-auth/react";
+import { PencilLine, Trash2 } from "lucide-react";
+import { toast } from "sonner";
+import { deleteReview } from "../actions/manage-review";
 
 interface Review {
   id: number;
   rating: number;
-  comment: string;
-  user: string;
-  createdAt: string;
+  description: string;
+  customer: string;
+  timestamp: string;
+  customer_id: number;
 }
 
 interface ReviewListProps {
   productId: number;
+  onEditReview: (review: Review) => void;
 }
 
-export function ReviewList({ productId }: ReviewListProps) {
+export const ReviewList = ({ productId, onEditReview }: ReviewListProps) => {
   const [reviews, setReviews] = useState<Review[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const { data: session, status } = useSession();
 
   useEffect(() => {
     const fetchReviews = async () => {
@@ -44,14 +52,29 @@ export function ReviewList({ productId }: ReviewListProps) {
     return <p>No reviews yet.</p>;
   }
 
+  const handleDelete = async (id: number) => {
+    try {
+      toast.loading("Deleting review...");
+      await deleteReview(id);
+      setReviews((prev) => prev.filter((review) => review.id !== id));
+      toast.success("Review deleted successfully");
+    } catch (error) {
+      console.error("Error deleting review:", error);
+      toast.error("Error deleting review");
+    }
+    finally {
+      toast.dismiss();
+    }
+  };
+
   return (
     <div className="space-y-6 mt-8">
       {reviews.map((review) => (
-        <div key={review.id} className="border-b pb-4">
+        <div key={review.id} className="pb-4 border-b">
           <div className="flex items-center justify-between">
-            <p className="font-semibold">{review.user}</p>
+            <p className="font-semibold">{review.customer}</p>
             <p className="text-sm text-gray-500">
-              {new Date(review.createdAt).toLocaleDateString()}
+              {new Date(review.timestamp).toLocaleDateString()}
             </p>
           </div>
           <div className="flex items-center mt-1">
@@ -68,12 +91,33 @@ export function ReviewList({ productId }: ReviewListProps) {
               </svg>
             ))}
           </div>
-          <p className="mt-2">{review.comment}</p>
+          <p className="mt-2">{review.description}</p>
+          {status === "authenticated" &&
+            (session?.user?.name || "") === review.customer && (
+              <div className="flex justify-end gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="mt-2"
+                  onClick={() => onEditReview(review)}
+                >
+                  <PencilLine size={16} /> Edit
+                </Button>
+                <Button
+                  variant="destructive"
+                  size="sm"
+                  className="mt-2"
+                  onClick={() => handleDelete(review.id)}
+                >
+                  <Trash2 size={16} /> Delete
+                </Button>
+              </div>
+            )}
         </div>
       ))}
     </div>
   );
-}
+};
 
 const ReviewListSkeleton = () => (
   <div className="space-y-6 mt-8">

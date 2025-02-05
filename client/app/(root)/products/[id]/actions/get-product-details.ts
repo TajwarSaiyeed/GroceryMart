@@ -14,13 +14,13 @@ export const getProductDetails = async (id: number) => {
 };
 
 export const getReviews = async (productId: number) => {
-  console.log("Fetching reviews for product", productId);
-
-  return [
-    {
-      id: 1,
-      rating: 5,
-      comment: "Great product!",
-    },
-  ];
+  try {
+    const reviews = await axios.get(
+      `${API_URL}/product/reviews/?product_id=${productId}`
+    );
+    return reviews.data;
+  } catch (error) {
+    console.error("Error fetching reviews:", error);
+    return null;
+  }
 };

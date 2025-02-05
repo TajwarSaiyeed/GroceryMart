@@ -12,7 +12,7 @@ interface ProductDetailsProps {
   product: ProductProps;
 }
 
-export function ProductDetails({ product }: ProductDetailsProps) {
+export const ProductDetails = ({ product }: ProductDetailsProps) => {
   const [quantity, setQuantity] = useState(1);
   const { addToCart } = useCart();
 
@@ -74,4 +74,4 @@ export function ProductDetails({ product }: ProductDetailsProps) {
       </div>
     </div>
   );
-}
+};
