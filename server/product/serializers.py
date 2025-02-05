@@ -1,7 +1,7 @@
 from rest_framework import serializers
 
 from customer.models import Customer, WishList
-from .models import Product, Category, Order, OrderItem
+from .models import Product, Category, Order, OrderItem, Review
 
 
 class ProductSerializer(serializers.ModelSerializer):
@@ -40,3 +40,11 @@ class OrderSerializer(serializers.ModelSerializer):
     class Meta:
         model = Order
         fields = ['id', 'customer', 'order_date', 'order_items', 'total_price']
+
+
+class ReviewSerializer(serializers.ModelSerializer):
+    product = serializers.StringRelatedField(many=False)
+    customer = serializers.StringRelatedField(many=False)
+    class Meta:
+        model = Review
+        fields = '__all__'

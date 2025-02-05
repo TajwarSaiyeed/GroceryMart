@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Order Confirmation</title>
+</head>
+<body style="background-color: #f3f4f6; font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, 'Noto Sans', sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';">
+<div style="margin: 2rem auto; max-width: 600px; background: #ffffff; border-radius: 8px; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); overflow: hidden;">
+    <div style="padding: 1rem; background: #10b981; color: #ffffff; text-align: center;">
+        <h2 style="font-size: 1.5rem; font-weight: 600;">Order Confirmation</h2>
+    </div>
+
+    <div style="padding: 1.5rem;">
+        <p style="color: #4b5563; margin-bottom: 1rem;">Dear {{ customer_name }},</p>
+        <p style="color: #4b5563; margin-bottom: 1rem;">
+            Thank you for your order. We are pleased to confirm that your order has been successfully processed. Below are the details of your purchase:
+        </p>
+
+        <div style="margin-bottom: 1rem;">
+            <p style="color: #4b5563; font-weight: 600;">Order Number:</p>
+            <p style="color: #4b5563;">{{ order_number }}</p>
+        </div>
+        <div style="margin-bottom: 1rem;">
+            <p style="color: #4b5563; font-weight: 600;">Order Date:</p>
+            <p style="color: #4b5563;">{{ order_date }}</p>
+        </div>
+
+        <table style="width: 100%; border-collapse: collapse; margin-bottom: 1rem;">
+            <thead>
+            <tr style="background-color: #f3f4f6;">
+                <th style="padding: 0.5rem; text-align: left; border-bottom: 1px solid #e5e7eb;">Product</th>
+                <th style="padding: 0.5rem; text-align: right; border-bottom: 1px solid #e5e7eb;">Quantity</th>
+                <th style="padding: 0.5rem; text-align: right; border-bottom: 1px solid #e5e7eb;">Price</th>
+            </tr>
+            </thead>
+            <tbody>
+            {% for item in order_items %}
+                <tr>
+                    <td style="padding: 0.5rem; border-bottom: 1px solid #e5e7eb;">{{ item.product.name }}</td>
+                    <td style="padding: 0.5rem; text-align: right; border-bottom: 1px solid #e5e7eb;">{{ item.quantity }}</td>
+                    <td style="padding: 0.5rem; text-align: right; border-bottom: 1px solid #e5e7eb;">${{ item.product.price }}</td>
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+
+        <div style="margin-bottom: 1rem;">
+            <p style="color: #4b5563; font-weight: 600;">Total Amount:</p>
+            <p style="font-size: 1.25rem; line-height: 1.75rem; color: #16a34a;">${{ total_price }}</p>
+        </div>
+        <div style="margin-bottom: 1rem;">
+            <p style="color: #4b5563; font-weight: 600;">New Balance:</p>
+            <p style="font-size: 1.25rem; line-height: 1.75rem; color: #16a34a;">${{ new_balance }}</p>
+        </div>
+
+        <p style="color: #4b5563; margin-top: 1.5rem;">
+            If you have any questions or concerns regarding this order, please don't hesitate to contact our customer support team.
+        </p>
+        <p style="color: #4b5563; margin-top: 0.5rem;">
+            Thank you for shopping with GroceryMart!
+        </p>
+    </div>
+
+    <div style="padding: 1rem; background-color: #f3f4f6; color: #4b5563; text-align: center;">
+        <p>© {{ year }} GroceryMart. All rights reserved.</p>
+    </div>
+</div>
+</body>
+</html>
+

@@ -1,4 +1,6 @@
-from django.contrib.auth import authenticate, login, logout
+from datetime import datetime
+
+from django.contrib.auth import logout
 from django.contrib.auth.models import User
 from django.contrib.auth.tokens import default_token_generator
 from django.core.mail import EmailMultiAlternatives
@@ -15,7 +17,7 @@ from rest_framework.views import APIView
 
 from .models import Customer, Deposit, Purchase, WishList
 from .serializers import CustomerSerializer, RegistrationSerializer, UserLoginSerializer, DepositSerializer, \
-    PurchaseSerializer, WishListSerializer
+    PurchaseSerializer, WishListSerializer, UpdatePasswordSerializer
 
 
 class CustomerViewset(viewsets.ModelViewSet):
@@ -49,7 +51,8 @@ class DepositViewset(viewsets.ModelViewSet):
                 'customer_name': f"{customer.user.first_name} {customer.user.last_name}",
                 'amount': amount,
                 'new_balance': customer.balance,
-                'deposit_date': deposit.deposit_date
+                'deposit_date': deposit.deposit_date,
+                'year': datetime.now().year
             })
             email = EmailMultiAlternatives(
                 email_subject,
@@ -137,25 +140,24 @@ class UserLoginApiView(APIView):
     serializer_class = UserLoginSerializer
 
     def post(self, request):
-        serializer = UserLoginSerializer(data=self.request.data)
+        serializer = UserLoginSerializer(data=request.data)
         if serializer.is_valid():
-            username = serializer.validated_data['username']
-            password = serializer.validated_data['password']
+            user = User.objects.get(username=serializer.validated_data['user'])
+            customer = Customer.objects.get(user=user)
+            token, created = Token.objects.get_or_create(user=user)
+            response_data = {
+                'token': token.key,
+                'user_id': user.id,
+                'email': user.email,
+                'username': user.username,
+                'full_name': f"{user.first_name} {user.last_name}",
+                'balance': customer.balance
+            }
 
-            user = authenticate(username=username, password=password)
-
-            if user:
-                token, _ = Token.objects.get_or_create(user=user)
-                login(request, user)
-                response_data = {
-                    'token': token.key,
-                    'user_id': user.id,
-                    'email': user.email,
-                    'username': user.username,
-                }
-                return Response(response_data, status=status.HTTP_200_OK)
-            return Response({'error': 'Invalid credentials or Need to Activate'}, status=status.HTTP_400_BAD_REQUEST)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+            return Response(response_data, status=status.HTTP_200_OK)
+        return Response({
+            'error' : serializer.errors['non_field_errors'][0]
+        }, status=status.HTTP_400_BAD_REQUEST)
 
 
 class UserLogoutApiView(APIView):
@@ -166,6 +168,23 @@ class UserLogoutApiView(APIView):
         request.user.auth_token.delete()
         logout(request)
         return JsonResponse({'message': 'Successfully logged out'}, status=status.HTTP_200_OK)
+
+
+class UpdateUserPasswordView(APIView):
+    serializer_class = UpdatePasswordSerializer
+    authentication_classes = [TokenAuthentication]
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request, *args, **kwargs):
+        serializer = UpdatePasswordSerializer(data=request.data)
+        if serializer.is_valid():
+            user = request.user
+            if not user.check_password(serializer.validated_data['old_password']):
+                return Response({'error': 'Old password is incorrect'}, status=status.HTTP_400_BAD_REQUEST)
+            user.set_password(serializer.validated_data['new_password'])
+            user.save()
+            return Response({'message': 'Password updated successfully'}, status=status.HTTP_200_OK)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
 class GetUserAndCustomerView(APIView):

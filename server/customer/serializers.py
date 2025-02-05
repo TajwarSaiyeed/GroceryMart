@@ -1,3 +1,4 @@
+from django.contrib.auth import authenticate
 from django.contrib.auth.models import User
 from rest_framework import serializers
 
@@ -11,7 +12,6 @@ class CustomerSerializer(serializers.ModelSerializer):
     class Meta:
         model = Customer
         fields = '__all__'
-
 
 class DepositSerializer(serializers.ModelSerializer):
     customer = serializers.StringRelatedField(many=False)
@@ -84,12 +84,35 @@ class RegistrationSerializer(serializers.ModelSerializer):
 
 
 class UserLoginSerializer(serializers.Serializer):
-    username = serializers.CharField()
-    password = serializers.CharField()
+    username = serializers.CharField(required=True)
+    password = serializers.CharField(required=True, write_only=True)
 
-    class Meta:
-        model = User
-        fields = ['username', 'password']
+    def validate(self, data):
+        username = data.get('username')
+        password = data.get('password')
+
+        if username and password:
+            user = authenticate(username=username, password=password)
+            if user:
+                if not user.is_active:
+                    raise serializers.ValidationError("User is not active.")
+            else:
+                raise serializers.ValidationError("Invalid credentials.")
+        else:
+            raise serializers.ValidationError("Must provide username and password.")
+        data['user'] = user
+        return data
+
+
+class UpdatePasswordSerializer(serializers.Serializer):
+    old_password = serializers.CharField(write_only=True)
+    new_password = serializers.CharField(write_only=True, min_length=8)
+    confirm_password = serializers.CharField(write_only=True)
+
+    def validate(self, data):
+        if data['new_password'] != data['confirm_password']:
+            raise serializers.ValidationError("Passwords must match.")
+        return data
 
 
 class GetUserAndCustomerSerializer(serializers.ModelSerializer):

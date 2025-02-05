@@ -1,13 +1,16 @@
+from datetime import datetime
 from decimal import Decimal
 
+from django.core.mail import EmailMultiAlternatives
 from django.http import JsonResponse
+from django.template.loader import render_to_string
 from rest_framework import viewsets, filters, pagination, status
-from rest_framework.permissions import IsAuthenticated, BasePermission, SAFE_METHODS, IsAdminUser as IsAdmin
-from rest_framework.response import Response
+from rest_framework.permissions import IsAuthenticated, BasePermission, SAFE_METHODS, IsAdminUser as IsAdmin, \
+    IsAuthenticatedOrReadOnly
 
 from customer.models import Customer, Purchase
-from .models import Category, Product, Order, OrderItem
-from .serializers import CategorySerializer, ProductSerializer, OrderSerializer, OrderItemSerializer
+from .models import Category, Product, Order, OrderItem, Review
+from .serializers import CategorySerializer, ProductSerializer, OrderSerializer, OrderItemSerializer, ReviewSerializer
 
 
 class IsAdminOrReadOnly(BasePermission):
@@ -77,7 +80,6 @@ class OrderViewset(viewsets.ModelViewSet):
                         status=status.HTTP_400_BAD_REQUEST
                     )
 
-
             total_price = Decimal(sum(item['product'].price * item['quantity'] for item in order_items))
 
             if total_price > customer.balance:
@@ -98,6 +100,25 @@ class OrderViewset(viewsets.ModelViewSet):
                 product.quantity -= quantity
                 product.save()
             order.save()
+
+            email_subject = "Order Confirmation"
+            email_body = render_to_string('order_confirmation.html', {
+                'customer_name': f"{customer.user.first_name} {customer.user.last_name}",
+                'order_number': order.id,
+                'order_date': order.order_date.strftime('%Y-%m-%d %H:%M:%S'),
+                'order_items': order.order_items.all(),
+                'total_price': total_price,
+                'new_balance': customer.balance,
+                'year': datetime.now().year
+            })
+            email = EmailMultiAlternatives(
+                email_subject,
+                '',
+                to=[customer.user.email]
+            )
+            email.attach_alternative(email_body, "text/html")
+            email.send()
+
             return JsonResponse(serializer.data, status=status.HTTP_201_CREATED)
         return JsonResponse(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
@@ -106,3 +127,25 @@ class OrderItemViewset(viewsets.ModelViewSet):
     queryset = OrderItem.objects.all()
     serializer_class = OrderItemSerializer
     permission_classes = [IsAdmin]
+
+class ReviewForSpecificProduct(filters.BaseFilterBackend):
+    def filter_queryset(self, request, queryset, view):
+        product_id = request.query_params.get('product_id')
+        if product_id:
+            return queryset.filter(product=product_id)
+        return queryset
+
+class ReviewViewset(viewsets.ModelViewSet):
+    queryset = Review.objects.all()
+    serializer_class = ReviewSerializer
+    permission_classes = [IsAuthenticatedOrReadOnly]
+    filter_backends = [ReviewForSpecificProduct]
+
+    def create(self, request, *args, **kwargs):
+        serializer = ReviewSerializer(data=request.data)
+        if serializer.is_valid():
+            customer = Customer.objects.get(user=request.user)
+            product = Product.objects.get(id=request.data['product'])
+            serializer.save(customer=customer, product=product)
+            return JsonResponse(serializer.data, status=status.HTTP_201_CREATED)
+        return JsonResponse(serializer.errors, status=status.HTTP_400_BAD_REQUEST)

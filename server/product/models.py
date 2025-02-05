@@ -57,3 +57,25 @@ class OrderItem(models.Model):
 
     class Meta:
         ordering = ['-timestamp']
+
+
+RATING_CHOICES = (
+    (1, 'Poor'),
+    (2, 'Fair'),
+    (3, 'Good'),
+    (4, 'Very Good'),
+    (5, 'Excellent'),
+)
+
+class Review(models.Model):
+    product = models.ForeignKey(Product, on_delete=models.CASCADE, related_name='reviews')
+    customer = models.ForeignKey('customer.Customer', on_delete=models.CASCADE, related_name='reviews')
+    rating = models.IntegerField(choices=RATING_CHOICES)
+    description = models.TextField()
+    timestamp = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f'{self.product} - {self.customer}'
+
+    class Meta:
+        ordering = ['-timestamp']
