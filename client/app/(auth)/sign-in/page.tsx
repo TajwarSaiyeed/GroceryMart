@@ -53,7 +53,6 @@ const SignInPage = () => {
       } else {
         toast.success("Signed in successfully.");
         router.push("/");
-        window.location.reload();
       }
     } catch {
       toast.error("Something went wrong. Please try again.");
