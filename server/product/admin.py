@@ -15,7 +15,7 @@ class OrderAdmin(admin.ModelAdmin):
 
 
 class ProductAdmin(admin.ModelAdmin):
-    list_display = ['id', 'name', 'category', 'price', 'quantity', 'description', 'image', 'timestamp']
+    list_display = ['id', 'name', 'category', 'price', 'old_price', 'quantity', 'description', 'image', 'timestamp']
     list_filter = ['category', 'timestamp']
 
     def category(self, obj):

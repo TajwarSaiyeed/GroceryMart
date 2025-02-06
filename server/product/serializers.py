@@ -7,6 +7,7 @@ from .models import Product, Category, Order, OrderItem, Review
 class ProductSerializer(serializers.ModelSerializer):
     category = serializers.StringRelatedField(many=False)
     wishlist_users = serializers.SerializerMethodField()
+    avg_rating = serializers.FloatField(read_only=True)
     class Meta:
         model = Product
         fields = '__all__'

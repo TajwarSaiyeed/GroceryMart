@@ -1,5 +1,5 @@
 from django.db import models
-
+from django.utils import timezone
 
 class Category(models.Model):
     name = models.CharField(max_length=100)
@@ -16,10 +16,20 @@ class Product(models.Model):
     name = models.CharField(max_length=100)
     category = models.ForeignKey(Category, on_delete=models.CASCADE)
     price = models.FloatField()
+    old_price = models.FloatField(null=True, blank=True)
     quantity = models.IntegerField()
     description = models.TextField()
     image = models.ImageField(upload_to='product/images/')
     timestamp = models.DateTimeField(auto_now_add=True)
+
+    def save(self, *args, **kwargs):
+        if self.pk:
+            existing_product = Product.objects.filter(pk=self.pk).first()
+            if existing_product:
+                if existing_product.price != self.price or existing_product.old_price != self.old_price:
+                    self.timestamp = timezone.now()
+
+        super().save(*args, **kwargs)
 
     def __str__(self):
         return self.name

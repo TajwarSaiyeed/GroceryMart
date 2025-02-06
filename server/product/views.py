@@ -1,5 +1,6 @@
 from datetime import datetime
 from decimal import Decimal
+from django.db.models import Avg
 
 from django.core.mail import EmailMultiAlternatives
 from django.http import JsonResponse
@@ -50,6 +51,21 @@ class ProductViewset(viewsets.ModelViewSet):
     def get_serializer_context(self):
         return {'request': self.request}
 
+class TopRatedProductViewset(viewsets.ModelViewSet):
+    queryset = Product.objects.annotate(avg_rating=Avg('reviews__rating')).order_by('-avg_rating')[:4]
+    serializer_class = ProductSerializer
+    permission_classes = [IsAdminOrReadOnly]
+
+class WeeklyDealProductViewset(viewsets.ModelViewSet):
+    queryset = Product.objects.order_by('-timestamp')
+    serializer_class = ProductSerializer
+    permission_classes = [IsAdminOrReadOnly]
+    pagination_class = ProductPagination
+
+    def filter_queryset(self, queryset):
+        if self.request.query_params.get('weekly_deal'):
+            return queryset[:4]
+        return queryset
 
 class OrderViewset(viewsets.ModelViewSet):
     queryset = Order.objects.all()
