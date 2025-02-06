@@ -46,7 +46,7 @@ const Navbar = () => {
           <div className="flex items-center">
             <Link href="/" className="flex items-center gap-2">
               <ShoppingCart className="h-6 w-6 text-green-600" />
-              <span className="text-lg font-semibold text-gray-900">
+              <span className="text-lg font-semibold  text-green-900">
                 Grocery Mart
               </span>
             </Link>
@@ -58,7 +58,7 @@ const Navbar = () => {
               </span>
             )}
             <Link href="/cart" className="relative">
-              <ShoppingCart className="h-6 w-6" />
+              <ShoppingCart className="h-6 w-6 text-green-600" />
               {mounted && getTotalItems() > 0 && (
                 <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
                   {getTotalItems()}
@@ -99,7 +99,7 @@ const Navbar = () => {
                 <Button variant="ghost" size="sm" asChild>
                   <Link href="/sign-in">Sign in</Link>
                 </Button>
-                <Button size="sm" asChild>
+                <Button size="sm" asChild className="bg-green-600 text-white">
                   <Link href="/register">Register</Link>
                 </Button>
               </div>

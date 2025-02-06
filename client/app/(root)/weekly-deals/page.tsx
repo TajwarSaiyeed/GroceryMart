@@ -63,7 +63,7 @@ const WeeklyDealsPage = () => {
             size={"sm"}
             key={page}
             onClick={() => handlePageChange(page)}
-            className={currentPage === page ? "bg-blue-500 text-white" : ""}
+            className={currentPage === page ? "bg-green-500 text-white" : ""}
           >
             {page}
           </Button>
@@ -82,7 +82,9 @@ const WeeklyDealsPage = () => {
   return (
     <div className="max-w-6xl mb-5 mx-auto px-4 sm:px-6 lg:px-8 py-10">
       <div className="mb-8">
-        <h1 className="text-3xl font-bold tracking-tight mb-2">Weekly Deals</h1>
+        <h1 className="text-3xl text-green-600 font-bold tracking-tight mb-2">
+          Weekly Deals
+        </h1>
         <p className="text-muted-foreground">
           Discover amazing discounts on our quality products. Limited time
           offers!

@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import Image from "next/image";
-import { buttonVariants } from "@/components/ui/button";
+import { Button, buttonVariants } from "@/components/ui/button";
 
 const Hero = () => {
   return (
@@ -27,17 +27,16 @@ const Hero = () => {
             eat well, and save more with GroceryMart.
           </p>
           <div className="flex flex-wrap justify-end gap-4 mt-8">
-            <Link
-              href="/products"
-              className={buttonVariants({
-                variant: "default",
-                size: "lg",
-                className: "bg-green-500 hover:bg-green-600 text-white",
-              })}
-              prefetch={false}
+            <Button
+              asChild
+              size="lg"
+              className="bg-green-600 hover:bg-green-700 text-white"
             >
-              Shop Now
-            </Link>
+              <Link href="/products" prefetch={false}>
+                Shop Now
+              </Link>
+            </Button>
+
             <Link
               href="/weekly-deals"
               prefetch={false}

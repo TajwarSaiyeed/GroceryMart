@@ -50,7 +50,7 @@ export function DashboardSidebar() {
       <SidebarHeader className="px-4 py-2">
         <Link href="/" className="flex items-center space-x-2">
           <ShoppingCart className="h-6 w-6 text-green-600" />
-          <span className="text-lg font-bold">GroceryMart</span>
+          <span className="text-lg  text-green-900 font-bold">GroceryMart</span>
         </Link>
       </SidebarHeader>
       <SidebarContent>

@@ -39,7 +39,9 @@ const TopRatedProducts = () => {
   return (
     <section className="my-12">
       <div className="flex justify-between items-center mb-6">
-        <h2 className="text-2xl font-bold">Top Rated Products</h2>
+        <h2 className="text-2xl  text-green-600 font-bold">
+          Top Rated Products
+        </h2>
       </div>
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         {isLoading

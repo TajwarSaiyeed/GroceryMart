@@ -50,7 +50,9 @@ export default function DashboardLayout({
           <SidebarInset className="flex-1 w-full">
             <header className="h-16 border-b px-4 flex items-center">
               <SidebarTrigger aria-label="Toggle Sidebar" />
-              <h1 className="text-xl font-semibold ml-4">{getPageTitle()}</h1>
+              <h1 className="text-xl text-green-600 font-semibold ml-4">
+                {getPageTitle()}
+              </h1>
             </header>
             <main className="flex-1 overflow-y-auto p-6">{children}</main>
           </SidebarInset>

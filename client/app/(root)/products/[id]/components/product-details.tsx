@@ -61,7 +61,11 @@ export const ProductDetails = ({ product }: ProductDetailsProps) => {
               }}
               className="w-20"
             />
-            <Button onClick={handleAddToCart} disabled={product.quantity === 0}>
+            <Button
+              className=" bg-green-600 hover:bg-green-700"
+              onClick={handleAddToCart}
+              disabled={product.quantity === 0}
+            >
               {product.quantity === 0 ? "Out of Stock" : "Add to Cart"}
             </Button>
           </div>

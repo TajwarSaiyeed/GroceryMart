@@ -57,7 +57,9 @@ const ProductPage = () => {
     <div className="max-w-6xl mx-auto px-4 py-8">
       <ProductDetails product={product} />
       <div className="mt-16">
-        <h2 className="text-2xl font-bold mb-4">Customer Reviews</h2>
+        <h2 className="text-2xl  text-green-600 font-bold mb-4">
+          Customer Reviews
+        </h2>
         {status === "authenticated" && !editingReview && (
           <>
             <Separator className="my-5" />

@@ -27,7 +27,7 @@ const WeeklyDeals = () => {
   return (
     <section className="my-12">
       <div className="flex justify-between items-center mb-6">
-        <h2 className="text-2xl font-bold">Weekly Deals</h2>
+        <h2 className="text-2xl text-green-600 font-bold">Weekly Deals</h2>
       </div>
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         {isLoading

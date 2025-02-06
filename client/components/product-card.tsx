@@ -87,7 +87,7 @@ export function ProductCard({
           Category: {categoryLabel}
         </div>
         <Link href={`/products/${id}`} passHref>
-          <Button className="w-full">View Details</Button>
+          <Button className="w-full bg-green-600 hover:bg-green-700">View Details</Button>
         </Link>
       </div>
     </div>
