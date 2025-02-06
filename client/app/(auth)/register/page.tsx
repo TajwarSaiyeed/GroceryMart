@@ -69,7 +69,7 @@ const RegisterPage = () => {
       if (response.error) {
         toast.error(response.error);
       } else {
-        toast.success("Registration successful");
+        toast.success("Registration successful. Check your email to verify your account.");
       }
     } catch {
       toast.error("An unknown error occurred.");
