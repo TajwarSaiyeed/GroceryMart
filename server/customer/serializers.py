@@ -57,30 +57,15 @@ class RegistrationSerializer(serializers.ModelSerializer):
         model = User
         fields = ['username', 'first_name', 'last_name', 'email', 'password', 'confirm_password', 'mobile_no']
 
-    def save(self):
-        username = self.validated_data['username']
-        email = self.validated_data['email']
-        first_name = self.validated_data['first_name']
-        last_name = self.validated_data['last_name']
-        password = self.validated_data['password']
-        password2 = self.validated_data['confirm_password']
-        mobile_no = self.validated_data['mobile_no']
+    def validate(self, data):
+        if data['password'] != data['confirm_password']:
+            raise serializers.ValidationError({'confirm_password': 'Passwords must match.'})
+        if User.objects.filter(username=data['username']).exists():
+            raise serializers.ValidationError({'username': 'Username is already in use.'})
+        if User.objects.filter(email=data['email']).exists():
+            raise serializers.ValidationError({'email': 'Email is already in use.'})
 
-        if password != password2:
-            raise serializers.ValidationError({'error': 'Passwords must match.'})
-
-        if User.objects.filter(email=email).exists():
-            raise serializers.ValidationError({'error': 'Email is already in use.'})
-
-        if User.objects.filter(username=username).exists():
-            raise serializers.ValidationError({'error': 'Username is already in use.'})
-
-        account = User(username=username, email=email, first_name=first_name, last_name=last_name)
-        account.is_active = False
-        account.set_password(password)
-        account.save()
-        Customer.objects.create(user=account, mobile_no=mobile_no)
-        return account
+        return data
 
 
 class UserLoginSerializer(serializers.Serializer):

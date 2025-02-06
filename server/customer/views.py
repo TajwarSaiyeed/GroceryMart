@@ -98,10 +98,21 @@ class UserRegistrationApiView(APIView):
     def post(self, request):
         serializer = RegistrationSerializer(data=request.data)
         if serializer.is_valid():
-            user = serializer.save()
+            data = serializer.validated_data
+            user = User.objects.create_user(
+                username=data['username'],
+                email=data['email'],
+                first_name=data['first_name'],
+                last_name=data['last_name'],
+                password=data['password'],
+                is_active=False
+            )
+            print(6, "HIT AFTER USER")
+
+            Customer.objects.create(user=user, mobile_no=data['mobile_no'])
             token = default_token_generator.make_token(user)
             uid = urlsafe_base64_encode(force_bytes(user.pk))
-            confirm_link = f"http://localhost:3000/customer/activate/{uid}/{token}"
+            confirm_link = f"https://grocery-mart-tsa.vercel.app/customer/activate/{uid}/{token}"
             email_subject = "Activate your account"
             email_body = render_to_string('activate.html', {
                 'confirm_link': confirm_link
@@ -113,9 +124,8 @@ class UserRegistrationApiView(APIView):
             )
             email.attach_alternative(email_body, "text/html")
             email.send()
-
             return Response(serializer.data, status=status.HTTP_201_CREATED)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        return Response({"errors": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
 
 
 def activate(request, uid64, token):

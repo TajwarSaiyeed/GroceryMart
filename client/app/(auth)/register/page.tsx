@@ -16,6 +16,7 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { registerUser } from "./actions/register-user";
+import { toast } from "sonner";
 
 const formSchema = z
   .object({
@@ -34,8 +35,9 @@ const formSchema = z
     mobile_no: z.string().regex(/^\d{11}$/, {
       message: "Please enter a valid 11-digit mobile number.",
     }),
-    password: z.string().min(6, {
-      message: "Password must be at least 6 characters.",
+    password: z.string().min(8, {
+      message:
+        "Password must be at least 8 characters. Uppercase, lowercase, and numbers are required.",
     }),
     confirm_password: z.string(),
   })
@@ -62,10 +64,17 @@ const RegisterPage = () => {
 
   async function onSubmit(values: FormValues) {
     try {
+      toast.loading("Registering your account...");
       const response = await registerUser(values);
-      console.log("Client response: ", response);
-    } catch (error) {
-      console.error(error);
+      if (response.error) {
+        toast.error(response.error);
+      } else {
+        toast.success("Registration successful");
+      }
+    } catch {
+      toast.error("An unknown error occurred.");
+    } finally {
+      toast.dismiss();
     }
   }
 
