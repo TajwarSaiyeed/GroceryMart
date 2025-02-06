@@ -45,3 +45,14 @@ class WishList(models.Model):
 
     class Meta:
         ordering = ['timestamp']
+
+
+class Subscriber(models.Model):
+    email = models.EmailField()
+    timestamp = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return self.email
+
+    class Meta:
+        ordering = ['timestamp']

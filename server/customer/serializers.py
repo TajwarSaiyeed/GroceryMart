@@ -3,7 +3,7 @@ from django.contrib.auth.models import User
 from rest_framework import serializers
 
 from product.models import Product
-from .models import Customer, Deposit, Purchase, WishList
+from .models import Customer, Deposit, Purchase, WishList, Subscriber
 
 
 class CustomerSerializer(serializers.ModelSerializer):
@@ -120,4 +120,9 @@ class GetUserAndCustomerSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Customer
+        fields = '__all__'
+
+class SubscriberSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Subscriber
         fields = '__all__'

@@ -15,9 +15,9 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from .models import Customer, Deposit, Purchase, WishList
+from .models import Customer, Deposit, Purchase, WishList, Subscriber
 from .serializers import CustomerSerializer, RegistrationSerializer, UserLoginSerializer, DepositSerializer, \
-    PurchaseSerializer, WishListSerializer, UpdatePasswordSerializer
+    PurchaseSerializer, WishListSerializer, UpdatePasswordSerializer, SubscriberSerializer
 
 
 class CustomerViewset(viewsets.ModelViewSet):
@@ -124,10 +124,8 @@ def activate(request, uid64, token):
         user = User.objects.get(pk=uid)
     except (User.DoesNotExist, ValueError, TypeError, OverflowError):
         return JsonResponse({'error': 'Activation link is invalid'}, status=400)
-
     if user.is_active:
         return JsonResponse({'message': 'Account already activated'}, status=200)
-
     if default_token_generator.check_token(user, token):
         user.is_active = True
         user.save()
@@ -153,10 +151,9 @@ class UserLoginApiView(APIView):
                 'full_name': f"{user.first_name} {user.last_name}",
                 'balance': customer.balance
             }
-
             return Response(response_data, status=status.HTTP_200_OK)
         return Response({
-            'error' : serializer.errors['non_field_errors'][0]
+            'error': serializer.errors['non_field_errors'][0]
         }, status=status.HTTP_400_BAD_REQUEST)
 
 
@@ -204,3 +201,39 @@ class GetUserAndCustomerView(APIView):
         }
 
         return Response(response_data, status=status.HTTP_200_OK)
+
+
+class SubscriptionView(APIView):
+    serializer_class = SubscriberSerializer
+
+    def get(self, request):
+        return Response({'message': 'Method "GET" not allowed.'}, status=status.HTTP_405_METHOD_NOT_ALLOWED)
+
+    def put(self, request):
+        return Response({'message': 'Method "PUT" not allowed.'}, status=status.HTTP_405_METHOD_NOT_ALLOWED)
+
+    def patch(self, request):
+        return Response({'message': 'Method "PATCH" not allowed.'}, status=status.HTTP_405_METHOD_NOT_ALLOWED)
+
+    def delete(self, request):
+        return Response({'message': 'Method "DELETE" not allowed.'}, status=status.HTTP_405_METHOD_NOT_ALLOWED)
+
+    def post(self, request):
+        serializer = SubscriberSerializer(data=request.data)
+        if serializer.is_valid():
+            email = serializer.validated_data['email']
+            subscriber = Subscriber.objects.create(email=email)
+            email_subject = "Subscription Confirmation"
+            email_body = render_to_string('subscribe.html', {
+                'email': email,
+                'year': datetime.now().year
+            })
+            email = EmailMultiAlternatives(
+                email_subject,
+                '',
+                to=[email]
+            )
+            email.attach_alternative(email_body, "text/html")
+            email.send()
+            return Response({'message': 'Subscription successful'}, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)

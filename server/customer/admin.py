@@ -1,6 +1,6 @@
 from django.contrib import admin
 
-from .models import Customer, Deposit, Purchase, WishList
+from .models import Customer, Deposit, Purchase, WishList, Subscriber
 
 
 class CustomerAdmin(admin.ModelAdmin):
@@ -37,7 +37,12 @@ class WishListAdmin(admin.ModelAdmin):
         return obj.product.name
 
 
+class SubscriberAdmin(admin.ModelAdmin):
+    list_display = ['id', 'email', 'timestamp']
+
+
 admin.site.register(Customer, CustomerAdmin)
 admin.site.register(Deposit, DepositAdmin)
 admin.site.register(Purchase, PurchaseAdmin)
 admin.site.register(WishList, WishListAdmin)
+admin.site.register(Subscriber, SubscriberAdmin)

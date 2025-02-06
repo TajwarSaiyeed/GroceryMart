@@ -1,7 +1,7 @@
 from django.urls import include,path
 from rest_framework.routers import DefaultRouter
 from .views import CustomerViewset, DepositViewset, PurchaseViewset, WishListViewset, UserRegistrationApiView, \
-    UserLoginApiView, UserLogoutApiView, activate, GetUserAndCustomerView, UpdateUserPasswordView
+    UserLoginApiView, UserLogoutApiView, activate, GetUserAndCustomerView, UpdateUserPasswordView, SubscriptionView
 
 router = DefaultRouter()
 
@@ -18,4 +18,5 @@ urlpatterns = [
     path('activate/<uid64>/<token>/', activate, name='activate'),
     path('profile/', GetUserAndCustomerView.as_view(), name='profile'),
     path('update-password/', UpdateUserPasswordView.as_view(), name='update-password'),
+    path('newsletter/', SubscriptionView.as_view(), name='newsletter'),
 ]
