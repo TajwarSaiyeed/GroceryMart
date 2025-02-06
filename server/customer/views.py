@@ -1,6 +1,6 @@
 from datetime import datetime
 
-from django.contrib.auth import logout
+from django.contrib.auth import logout, login
 from django.contrib.auth.models import User
 from django.contrib.auth.tokens import default_token_generator
 from django.core.mail import EmailMultiAlternatives
@@ -153,6 +153,7 @@ class UserLoginApiView(APIView):
             user = User.objects.get(username=serializer.validated_data['user'])
             customer = Customer.objects.get(user=user)
             token, created = Token.objects.get_or_create(user=user)
+            login(request, user)
             response_data = {
                 'token': token.key,
                 'user_id': user.id,
